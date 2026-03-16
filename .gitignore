@@ -87,3 +87,15 @@ lint/tmp/
 # OS
 .DS_Store
 Thumbs.db
+
+# Node
+node_modules/
+/dist/
+
+# Python
+backend/venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

@@ -11,7 +11,7 @@ data class LoginRequest(
 data class SignupRequest(
     val email: String,
     val password: String,
-    val name: String? = null
+    @SerializedName("display_name") val displayName: String? = null
 )
 
 data class FirebaseLoginRequest(

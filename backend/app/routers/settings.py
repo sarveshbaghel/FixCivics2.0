@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.config import settings
 from app.models import User
-from app.middleware.auth import require_admin
+from app.middleware.auth import require_user
 
 logger = logging.getLogger("civicfix.settings")
 router = APIRouter(prefix="/api/v1", tags=["Settings"])
@@ -37,7 +37,7 @@ def is_auto_post_enabled() -> bool:
 
 
 @router.get("/settings", response_model=SettingsResponse)
-async def get_settings(admin: User = Depends(require_admin)):
+async def get_settings(user: User = Depends(require_user)):
     """Get current application settings. Admin-only."""
     has_oauth_keys = all([
         settings.X_API_KEY,
@@ -56,12 +56,12 @@ async def get_settings(admin: User = Depends(require_admin)):
 @router.put("/settings", response_model=SettingsResponse)
 async def update_settings(
     data: SettingsUpdate,
-    admin: User = Depends(require_admin),
+    user: User = Depends(require_user),
 ):
     """Update application settings. Admin-only."""
     _runtime_settings["x_auto_post_enabled"] = data.x_auto_post_enabled
     logger.info(
-        f"Settings updated by {admin.email}: "
+        f"Settings updated by {user.email}: "
         f"x_auto_post_enabled={data.x_auto_post_enabled}"
     )
 

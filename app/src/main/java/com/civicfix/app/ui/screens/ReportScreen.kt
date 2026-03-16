@@ -33,6 +33,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.civicfix.app.data.api.RetrofitClient
 import com.civicfix.app.data.models.IssueType
 import com.civicfix.app.ui.theme.CivicFixBlue
+import com.civicfix.app.util.TwitterShareManager
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
 import android.app.Activity
@@ -390,6 +391,22 @@ fun ReportScreen(
                                     timestamp = incidentDateTime?.let { it.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "Z" }?.toRequestBody("text/plain".toMediaTypeOrNull())
                                 )
                                 successResponse = response.complaintText
+
+                                // ── Twitter Share (if enabled in Settings) ──
+                                val prefs = context.getSharedPreferences(CIVICFIX_PREFS, Context.MODE_PRIVATE)
+                                if (prefs.getBoolean(PREF_POST_TO_TWITTER, false)) {
+                                    val formattedDateTime = incidentDateTime
+                                        ?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy • hh:mm a"))
+                                        ?: "Not specified"
+                                    TwitterShareManager.shareReportToTwitter(
+                                        context = context,
+                                        issueType = issueType!!.displayName,
+                                        description = description,
+                                        locationAddress = locationText,
+                                        dateTime = formattedDateTime,
+                                        imageUri = imageUri
+                                    )
+                                }
                             } catch (e: Exception) {
                                 Toast.makeText(context, "Failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                             } finally {

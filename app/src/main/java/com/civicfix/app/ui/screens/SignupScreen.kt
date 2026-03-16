@@ -24,8 +24,6 @@ import com.civicfix.app.ui.theme.CivicFixBlueDark
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import android.util.Log
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.userProfileChangeRequest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,38 +112,19 @@ fun SignupScreen(
                         scope.launch {
                             loading = true; error = null
                             try {
-                                // Step 1: Create user with Firebase Auth
-                                val auth = FirebaseAuth.getInstance()
-                                val authResult = auth.createUserWithEmailAndPassword(
-                                    trimmedEmail, trimmedPassword
-                                ).await()
-
-                                val firebaseUser = authResult.user
-                                    ?: throw Exception("Firebase signup succeeded but user is null")
-
-                                // Step 2: Set display name on Firebase profile
-                                val profileUpdates = userProfileChangeRequest {
-                                    displayName = trimmedName
-                                }
-                                firebaseUser.updateProfile(profileUpdates).await()
-
-                                // Step 3: Get Firebase ID token
-                                val idToken = firebaseUser.getIdToken(true).await().token
-                                    ?: throw Exception("Failed to get Firebase ID token")
-
-                                // Step 4: Register with our backend (sends Firebase token)
-                                val response = RetrofitClient.api.firebaseLogin(
-                                    FirebaseLoginRequest(firebaseToken = idToken)
+                                val response = RetrofitClient.api.signup(
+                                    com.civicfix.app.data.models.SignupRequest(
+                                        email = trimmedEmail,
+                                        password = trimmedPassword,
+                                        displayName = trimmedName
+                                    )
                                 )
-
-                                Log.i("SignupScreen", "Signup successful for ${firebaseUser.email}")
+                                Log.i("SignupScreen", "Signup successful for $trimmedEmail")
                                 onSignupSuccess(response.accessToken)
-                            } catch (e: com.google.firebase.auth.FirebaseAuthWeakPasswordException) {
-                                error = "Password is too weak. Use at least 6 characters."
-                            } catch (e: com.google.firebase.auth.FirebaseAuthUserCollisionException) {
-                                error = "An account with this email already exists."
-                            } catch (e: com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
-                                error = "Invalid email format."
+                            } catch (e: retrofit2.HttpException) {
+                                error = if (e.code() == 400) "An account with this email already exists." else "Signup failed: ${e.message()}"
+                            } catch (e: java.io.IOException) {
+                                error = "Network error. Please check your connection."
                             } catch (e: Exception) {
                                 Log.e("SignupScreen", "Signup error: ${e.message}", e)
                                 error = "Signup failed: ${e.localizedMessage}"

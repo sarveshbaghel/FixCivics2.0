@@ -1,9 +1,12 @@
 package com.civicfix.app.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.*
@@ -13,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,12 +25,18 @@ import com.civicfix.app.data.models.SettingsUpdateRequest
 import com.civicfix.app.ui.theme.CivicFixBlue
 import kotlinx.coroutines.launch
 
+/** SharedPreferences file name used for local app settings. */
+const val CIVICFIX_PREFS = "civicfix_prefs"
+/** Key for the "Enable Twitter Posting" toggle (boolean, default false). */
+const val PREF_POST_TO_TWITTER = "pref_post_to_twitter"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     token: String?,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     var autoPostEnabled by remember { mutableStateOf(false) }
     var apiConnected by remember { mutableStateOf(false) }
     var bearerConfigured by remember { mutableStateOf(false) }
@@ -35,6 +45,10 @@ fun SettingsScreen(
     var error by remember { mutableStateOf<String?>(null) }
     var successMsg by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+
+    // Local Twitter posting toggle (SharedPreferences)
+    val prefs = remember { context.getSharedPreferences(CIVICFIX_PREFS, Context.MODE_PRIVATE) }
+    var twitterPostEnabled by remember { mutableStateOf(prefs.getBoolean(PREF_POST_TO_TWITTER, false)) }
 
     // Load settings
     LaunchedEffect(Unit) {
@@ -83,10 +97,87 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
+                    .verticalScroll(rememberScrollState())
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // X Integration Card
+                // ── Twitter Posting Toggle Card (local SharedPreferences) ──
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("🐦", fontSize = 22.sp)
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                "Enable Twitter Posting",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1A202C)
+                            )
+                        }
+
+                        Spacer(Modifier.height(10.dp))
+
+                        Text(
+                            "After submitting a report, share it directly to Twitter/X with a pre-filled tweet and attached photo.",
+                            fontSize = 14.sp,
+                            color = Color(0xFF64748B),
+                            lineHeight = 20.sp
+                        )
+
+                        Spacer(Modifier.height(16.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFF8FAFC))
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    "Share to Twitter after Submit",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF1A202C)
+                                )
+                                Text(
+                                    if (twitterPostEnabled)
+                                        "Twitter composer will open after submitting a report"
+                                    else
+                                        "Reports will be saved without opening Twitter",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF94A3B8)
+                                )
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Switch(
+                                checked = twitterPostEnabled,
+                                onCheckedChange = { newValue ->
+                                    twitterPostEnabled = newValue
+                                    prefs.edit().putBoolean(PREF_POST_TO_TWITTER, newValue).apply()
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = Color(0xFF1DA1F2),
+                                    uncheckedThumbColor = Color.White,
+                                    uncheckedTrackColor = Color(0xFFCBD5E1)
+                                )
+                            )
+                        }
+                    }
+                }
+
+                // ── X Integration Card (server-side auto-post) ──
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),

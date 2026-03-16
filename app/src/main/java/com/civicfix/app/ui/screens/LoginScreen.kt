@@ -25,7 +25,6 @@ import com.civicfix.app.ui.theme.CivicFixBlueDark
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import android.util.Log
-import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,30 +133,18 @@ fun LoginScreen(
                             loading = true
                             error = null
                             try {
-                                // Step 1: Sign in with Firebase Auth
-                                val auth = FirebaseAuth.getInstance()
-                                val authResult = auth.signInWithEmailAndPassword(
-                                    email.trim(), password.trim()
-                                ).await()
-
-                                val firebaseUser = authResult.user
-                                    ?: throw Exception("Firebase login succeeded but user is null")
-
-                                // Step 2: Get Firebase ID token
-                                val idToken = firebaseUser.getIdToken(true).await().token
-                                    ?: throw Exception("Failed to get Firebase ID token")
-
-                                // Step 3: Exchange Firebase token for backend JWT
-                                val response = RetrofitClient.api.firebaseLogin(
-                                    FirebaseLoginRequest(firebaseToken = idToken)
+                                val response = RetrofitClient.api.login(
+                                    com.civicfix.app.data.models.LoginRequest(
+                                        email = email.trim(), 
+                                        password = password.trim()
+                                    )
                                 )
-
-                                Log.i("LoginScreen", "Login successful for ${firebaseUser.email}")
+                                Log.i("LoginScreen", "Login successful for ${email.trim()}")
                                 onLoginSuccess(response.accessToken)
-                            } catch (e: com.google.firebase.auth.FirebaseAuthInvalidUserException) {
-                                error = "No account found with this email."
-                            } catch (e: com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
-                                error = "Invalid email or password."
+                            } catch (e: retrofit2.HttpException) {
+                                error = if (e.code() == 401) "Invalid email or password." else "Login failed: ${e.message()}"
+                            } catch (e: java.io.IOException) {
+                                error = "Network error. Please check your connection."
                             } catch (e: Exception) {
                                 Log.e("LoginScreen", "Login error: ${e.message}", e)
                                 error = "Login failed: ${e.localizedMessage}"
