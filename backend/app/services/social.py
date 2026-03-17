@@ -1,4 +1,4 @@
-"""
+()"""
 CivicFix - Social Posting Service (X / Twitter)
 Posts reports to X with retry/backoff. Simulates if keys missing.
 """
@@ -13,7 +13,7 @@ async def post_to_x(
     complaint_text: str,
     tweet_text: str,
     image_url: str | None = None,
-    image_path: str | None = None,
+    image_bytes: bytes | None = None,
 ) -> dict:
     """
     Post a report to X (Twitter).
@@ -29,7 +29,7 @@ async def post_to_x(
     if settings.MOCK_MODE or not has_keys:
         return _simulate_post(tweet_text, image_url)
 
-    return await _real_post(tweet_text, image_path)
+    return await _real_post(tweet_text, image_bytes)
 
 
 def _simulate_post(tweet_text: str, image_url: str | None) -> dict:
@@ -49,7 +49,7 @@ def _simulate_post(tweet_text: str, image_url: str | None) -> dict:
     }
 
 
-async def _real_post(tweet_text: str, image_path: str | None) -> dict:
+async def _real_post(tweet_text: str, image_bytes: bytes | None) -> dict:
     """Post to X using Tweepy with retry."""
     try:
         import tweepy
@@ -65,9 +65,10 @@ async def _real_post(tweet_text: str, image_path: str | None) -> dict:
 
         # Upload image if available
         media_ids = []
-        if image_path:
+        if image_bytes:
             try:
-                media = api.media_upload(image_path)
+                from io import BytesIO
+                media = api.media_upload(filename="upload.jpg", file=BytesIO(image_bytes))
                 media_ids = [media.media_id_string]
             except Exception as e:
                 logger.warning(f"Image upload to X failed: {e}")

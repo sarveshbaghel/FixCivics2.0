@@ -127,6 +127,7 @@ async def create_report(
                 complaint_text=complaint_text,
                 tweet_text=tweet_text,
                 image_url=storage_result["image_url"],
+                image_bytes=file_bytes,
             )
             if x_result["posted_status"] == "posted":
                 report.posted_to_x = True
