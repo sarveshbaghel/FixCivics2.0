@@ -25,6 +25,8 @@ class TwitterShareManager {
             issueType: String,
             description: String,
             locationAddress: String,
+            latitude: Double?,
+            longitude: Double?,
             dateTime: String
         ): String {
             val sb = StringBuilder()
@@ -38,6 +40,11 @@ class TwitterShareManager {
             sb.appendLine("\uD83D\uDCCD Location:")
             sb.appendLine(locationAddress)
             sb.appendLine()
+            if (latitude != null && longitude != null) {
+                sb.appendLine("\uD83D\uDDFA\uFE0F Coordinates: $latitude,$longitude")
+                sb.appendLine("\uD83D\uDD17 Map: https://maps.google.com/?q=$latitude,$longitude")
+                sb.appendLine()
+            }
             sb.appendLine("\uD83D\uDD52 Date & Time:")
             sb.appendLine(dateTime)
             sb.appendLine()
@@ -79,10 +86,12 @@ class TwitterShareManager {
             issueType: String,
             description: String,
             locationAddress: String,
+            latitude: Double?,
+            longitude: Double?,
             dateTime: String,
             imageUri: Uri?
         ) {
-            val tweetText = buildTweetText(issueType, description, locationAddress, dateTime)
+            val tweetText = buildTweetText(issueType, description, locationAddress, latitude, longitude, dateTime)
 
             // Check if Twitter app is installed
             val twitterInstalled: Boolean = try {

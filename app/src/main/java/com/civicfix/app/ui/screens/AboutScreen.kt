@@ -31,7 +31,7 @@ import com.civicfix.app.ui.theme.CivicFixBlueLight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen(onBack: () -> Unit) {
+fun AboutScreen(onBack: () -> Unit, onDevelopersClick: () -> Unit = {}) {
     val context = LocalContext.current
 
     Scaffold(
@@ -149,30 +149,55 @@ fun AboutScreen(onBack: () -> Unit) {
 
                 Spacer(Modifier.height(16.dp))
 
-                // Developers Section
-                AboutSectionCard(
-                    title = "Meet the Developers",
-                    icon = Icons.Outlined.Code
+                // Developers Section — link to dedicated screen
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onDevelopersClick() },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    DeveloperCard(
-                        name = "Priyanjal Paliwal",
-                        role = "Full-Stack Developer",
-                        email = "paliwalpriyanjal@gmail.com",
-                        linkedInUrl = "https://www.linkedin.com/in/priyanjal-paliwal-806534331",
-                        githubUrl = "https://github.com/paliwalpriyanjal-hash",
-                        context = context
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    HorizontalDivider(color = Color(0xFFE2E8F0))
-                    Spacer(Modifier.height(12.dp))
-                    DeveloperCard(
-                        name = "Sarvesh Baghel",
-                        role = "Full-Stack Developer",
-                        email = "sarveshsingh8462@gmail.com",
-                        linkedInUrl = "https://www.linkedin.com/in/sarvesh-baghel-b3a726274",
-                        githubUrl = "https://github.com/sarveshbaghel",
-                        context = context
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(CivicFixBlueLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.Code,
+                                contentDescription = null,
+                                tint = CivicFixBlue,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Meet the Developers",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1A202C)
+                            )
+                            Text(
+                                "View developer profiles & socials",
+                                fontSize = 13.sp,
+                                color = Color(0xFF64748B)
+                            )
+                        }
+                        Icon(
+                            Icons.Outlined.ChevronRight,
+                            contentDescription = null,
+                            tint = Color(0xFFCBD5E1)
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -256,80 +281,4 @@ private fun FeatureRow(emoji: String, text: String) {
     }
 }
 
-@Composable
-private fun DeveloperCard(
-    name: String,
-    role: String,
-    email: String,
-    linkedInUrl: String,
-    githubUrl: String,
-    context: android.content.Context
-) {
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(CivicFixBlue.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    name.split(" ").map { it.first() }.joinToString(""),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = CivicFixBlue
-                )
-            }
-            Spacer(Modifier.width(14.dp))
-            Column {
-                Text(name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A202C))
-                Text(role, fontSize = 13.sp, color = Color(0xFF64748B))
-            }
-        }
-        Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SocialChip(
-                label = "LinkedIn",
-                icon = Icons.Outlined.Person,
-                onClick = {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(linkedInUrl)))
-                }
-            )
-            SocialChip(
-                label = "GitHub",
-                icon = Icons.Outlined.Code,
-                onClick = {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl)))
-                }
-            )
-            SocialChip(
-                label = "Email",
-                icon = Icons.Outlined.Email,
-                onClick = {
-                    context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$email")))
-                }
-            )
-        }
-    }
-}
 
-@Composable
-private fun SocialChip(label: String, icon: ImageVector, onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick),
-        color = CivicFixBlueLight,
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp), tint = CivicFixBlue)
-            Spacer(Modifier.width(4.dp))
-            Text(label, fontSize = 12.sp, color = CivicFixBlue, fontWeight = FontWeight.Medium)
-        }
-    }
-}

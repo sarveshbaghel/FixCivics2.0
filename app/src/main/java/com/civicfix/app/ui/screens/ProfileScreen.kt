@@ -45,6 +45,7 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onSettingsClick: () -> Unit,
     onAboutClick: () -> Unit,
+    onDevelopersClick: () -> Unit,
     onHelpClick: () -> Unit,
     onPrivacyClick: () -> Unit
 ) {
@@ -200,8 +201,14 @@ fun ProfileScreen(
                 ProfileMenuItem(
                     icon = Icons.Outlined.Info,
                     text = "About CivicFix",
-                    subtitle = "App info & developer details",
+                    subtitle = "App info & details",
                     onClick = onAboutClick
+                )
+                ProfileMenuItem(
+                    icon = Icons.Outlined.Group,
+                    text = "Developers",
+                    subtitle = "Meet the team behind CivicFix",
+                    onClick = onDevelopersClick
                 )
 
                 Spacer(Modifier.height(16.dp))

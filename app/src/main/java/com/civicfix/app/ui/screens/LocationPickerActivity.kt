@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -161,38 +162,43 @@ class LocationPickerActivity : ComponentActivity() {
                 ) { innerPadding ->
                     Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                         if (cameraPositionState != null) {
-                            GoogleMap(
-                                modifier = Modifier.fillMaxSize(),
-                                cameraPositionState = cameraPositionState!!,
-                                properties = MapProperties(
-                                    isMyLocationEnabled = hasLocationPermission
-                                ),
-                                onMapClick = { latLng ->
-                                    selectedLatLng = latLng
+                            // Update selected location when the camera stops moving
+                            LaunchedEffect(cameraPositionState!!.isMoving) {
+                                if (!cameraPositionState!!.isMoving) {
+                                    val target = cameraPositionState!!.position.target
+                                    selectedLatLng = target
                                     coroutineScope.launch(Dispatchers.IO) {
-                                        val addr = getAddress(latLng.latitude, latLng.longitude)
+                                        val addr = getAddress(target.latitude, target.longitude)
                                         withContext(Dispatchers.Main) {
                                             selectedAddress = addr
                                         }
                                     }
-                                },
-                                onPOIClick = { poi ->
-                                    selectedLatLng = poi.latLng
-                                    coroutineScope.launch(Dispatchers.IO) {
-                                        val addr = getAddress(poi.latLng.latitude, poi.latLng.longitude)
-                                        withContext(Dispatchers.Main) {
-                                            selectedAddress = poi.name + " - " + addr
-                                        }
-                                    }
                                 }
-                            ) {
-                                selectedLatLng?.let {
-                                    Marker(
-                                        state = MarkerState(position = it),
-                                        title = "Selected Location",
-                                        snippet = selectedAddress
+                            }
+
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                GoogleMap(
+                                    modifier = Modifier.fillMaxSize(),
+                                    cameraPositionState = cameraPositionState!!,
+                                    properties = MapProperties(
+                                        isMyLocationEnabled = hasLocationPermission
+                                    ),
+                                    uiSettings = MapUiSettings(
+                                        myLocationButtonEnabled = true,
+                                        mapToolbarEnabled = false
                                     )
-                                }
+                                )
+                                
+                                // Center fixed marker
+                                Icon(
+                                    imageVector = Icons.Filled.LocationOn,
+                                    contentDescription = "Center Marker",
+                                    tint = com.civicfix.app.ui.theme.CivicFixBlue,
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .size(42.dp)
+                                        .offset(y = (-21).dp) // Offset to make the pin point at the exact center
+                                )
                             }
                         } else {
                             // Loading state while getting location

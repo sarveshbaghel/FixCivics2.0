@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getReport, updateReport, postToX, resolveReport, declineReport, getFullImageUrl } from '../api/client.js';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix Leaflet default marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
 
 export default function ReportDetail() {
     const { id } = useParams();
@@ -289,6 +300,19 @@ export default function ReportDetail() {
                             <div className="detail-field">
                                 <div className="label">Coordinates</div>
                                 <div className="value">{report.latitude.toFixed(6)}, {report.longitude.toFixed(6)}</div>
+                            </div>
+                            <div style={{ height: 200, width: '100%', marginTop: 16, borderRadius: 8, overflow: 'hidden' }}>
+                                <MapContainer
+                                    center={[report.latitude, report.longitude]}
+                                    zoom={15}
+                                    style={{ height: '100%', width: '100%' }}
+                                >
+                                    <TileLayer
+                                        attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
+                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    />
+                                    <Marker position={[report.latitude, report.longitude]} />
+                                </MapContainer>
                             </div>
                         </div>
                     </div>

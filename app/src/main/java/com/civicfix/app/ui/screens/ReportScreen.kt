@@ -403,6 +403,8 @@ fun ReportScreen(
                                         issueType = issueType!!.displayName,
                                         description = description,
                                         locationAddress = locationText,
+                                        latitude = latitude,
+                                        longitude = longitude,
                                         dateTime = formattedDateTime,
                                         imageUri = imageUri
                                     )

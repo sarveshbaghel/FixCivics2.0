@@ -98,6 +98,8 @@ def get_authority_tag(address: str) -> str:
 def generate_resolved_tweet_text(
     issue_type: str,
     address: str,
+    latitude: float,
+    longitude: float,
     user_twitter_handle: str | None = None,
     authority_tag: str | None = None,
 ) -> str:
@@ -109,9 +111,12 @@ def generate_resolved_tweet_text(
 
     user_mention = f"\n{user_twitter_handle}" if user_twitter_handle else ""
 
+    maps_link = f"https://maps.google.com/?q={latitude},{longitude}"
+
     tweet = (
         f"✅ Issue Resolved!\n\n"
         f"📍 Location: {location}\n"
+        f"🔗 Map: {maps_link}\n"
         f"📝 The reported {issue_type.lower()} has been successfully resolved.\n\n"
         f"Thanks for reporting 🙏"
         f"{user_mention} {authority_tag} #CivicFix #Gwalior"
@@ -127,6 +132,8 @@ def generate_resolved_tweet_text(
 def generate_declined_tweet_text(
     issue_type: str,
     address: str,
+    latitude: float,
+    longitude: float,
     decline_reason: str = "Invalid report",
     user_twitter_handle: str | None = None,
     authority_tag: str | None = None,
@@ -139,9 +146,12 @@ def generate_declined_tweet_text(
 
     user_mention = f"\n{user_twitter_handle}" if user_twitter_handle else ""
 
+    maps_link = f"https://maps.google.com/?q={latitude},{longitude}"
+
     tweet = (
         f"❌ Report Declined\n\n"
         f"📍 Location: {location}\n"
+        f"🔗 Map: {maps_link}\n"
         f"📝 This report has been marked as fake / invalid.\n\n"
         f"Reason: {decline_reason}\n"
         f"Thanks for helping keep CivicFix clean 🙏"

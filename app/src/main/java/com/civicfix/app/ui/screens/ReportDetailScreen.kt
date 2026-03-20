@@ -35,6 +35,13 @@ import com.civicfix.app.util.TwitterShareManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.CameraPositionState
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -173,6 +180,40 @@ fun ReportDetailScreen(
                             Spacer(Modifier.width(8.dp))
                             Text(formattedDate, fontSize = 14.sp)
                         }
+
+                        Spacer(Modifier.height(16.dp))
+                        
+                        // Map showing coordinates
+                        val mapLocation = LatLng(r.latitude, r.longitude)
+                        val cameraPositionState = remember(r.latitude, r.longitude) {
+                            CameraPositionState(CameraPosition.fromLatLngZoom(mapLocation, 15f))
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                        ) {
+                            GoogleMap(
+                                modifier = Modifier.fillMaxSize(),
+                                cameraPositionState = cameraPositionState,
+                                uiSettings = MapUiSettings(
+                                    zoomControlsEnabled = false,
+                                    scrollGesturesEnabled = false,
+                                    zoomGesturesEnabled = false,
+                                    tiltGesturesEnabled = false,
+                                    rotationGesturesEnabled = false,
+                                    mapToolbarEnabled = false
+                                )
+                            ) {
+                                Marker(
+                                    state = MarkerState(position = mapLocation),
+                                    title = r.issueType,
+                                    snippet = r.address
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -208,6 +249,8 @@ fun ReportDetailScreen(
                                     issueType = r.issueType,
                                     description = r.description,
                                     locationAddress = r.address ?: "${r.latitude}, ${r.longitude}",
+                                    latitude = r.latitude,
+                                    longitude = r.longitude,
                                     dateTime = formattedDate,
                                     imageUri = imageUri
                                 )

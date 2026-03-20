@@ -18,11 +18,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.civicfix.app.data.api.RetrofitClient
 import com.civicfix.app.data.models.SettingsUpdateRequest
 import com.civicfix.app.ui.theme.CivicFixBlue
+import com.civicfix.app.ui.theme.ThemeState
 import kotlinx.coroutines.launch
 
 /** SharedPreferences file name used for local app settings. */
@@ -101,6 +103,79 @@ fun SettingsScreen(
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // ── Appearance Card (Dark Mode Toggle) ──
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("🎨", fontSize = 22.sp)
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                "Appearance",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1A202C)
+                            )
+                        }
+
+                        Spacer(Modifier.height(10.dp))
+
+                        Text(
+                            "Choose your preferred app theme. This affects all screens.",
+                            fontSize = 14.sp,
+                            color = Color(0xFF64748B),
+                            lineHeight = 20.sp
+                        )
+
+                        Spacer(Modifier.height(16.dp))
+
+                        val currentMode = ThemeState.darkModePreference
+                        val options = listOf("system" to "System", "light" to "Light", "dark" to "Dark")
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFF1F5F9)),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            options.forEach { (value, label) ->
+                                val isSelected = currentMode == value
+                                Surface(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(4.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .then(
+                                            if (isSelected) Modifier else Modifier
+                                        ),
+                                    color = if (isSelected) CivicFixBlue else Color.Transparent,
+                                    shape = RoundedCornerShape(10.dp),
+                                    onClick = {
+                                        ThemeState.setDarkMode(context, value)
+                                    }
+                                ) {
+                                    Text(
+                                        text = label,
+                                        fontSize = 14.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Color.White else Color(0xFF64748B),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.padding(vertical = 10.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // ── Twitter Posting Toggle Card (local SharedPreferences) ──
                 Card(
                     modifier = Modifier.fillMaxWidth(),

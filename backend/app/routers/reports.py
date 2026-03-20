@@ -368,6 +368,8 @@ async def resolve_report(
     resolved_tweet = generate_resolved_tweet_text(
         issue_type=report.issue_type,
         address=report.address or "",
+        latitude=report.latitude,
+        longitude=report.longitude,
         user_twitter_handle=None,  # Can be extended later
     )
 
@@ -416,6 +418,8 @@ async def decline_report(
     declined_tweet = generate_declined_tweet_text(
         issue_type=report.issue_type,
         address=report.address or "",
+        latitude=report.latitude,
+        longitude=report.longitude,
         decline_reason=decline_reason,
         user_twitter_handle=None,
     )
