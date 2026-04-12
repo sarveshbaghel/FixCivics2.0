@@ -34,13 +34,18 @@ async def lifespan(app: FastAPI):
     logger.info("=" * 50)
 
     # Initialize database tables
-    await init_db()
-
-    # Seed admin account
-    await seed_admin()
+    try:
+        await init_db()
+        # Seed admin account
+        await seed_admin()
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
 
     # Initialize Redis for rate limiting
-    await init_redis()
+    try:
+        await init_redis()
+    except Exception as e:
+        logger.error(f"Failed to initialize Redis: {e}")
 
     # Create mock uploads directory
     if settings.MOCK_MODE:
