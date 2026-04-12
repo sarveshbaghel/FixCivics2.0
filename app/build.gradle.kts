@@ -36,8 +36,8 @@ android {
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
 
         // Backend URLs - Dynamically selected by RetrofitClient
-        buildConfigField("String", "EMULATOR_API_BASE_URL", "\"http://10.0.2.2:8001\"")
-        buildConfigField("String", "DEVICE_API_BASE_URL", "\"http://127.0.0.1:8001\"")
+        buildConfigField("String", "EMULATOR_API_BASE_URL", "\"http://10.0.2.2:8000\"")
+        buildConfigField("String", "DEVICE_API_BASE_URL", "\"https://fixcivics2-0.onrender.com\"")
     }
 
     buildTypes {

@@ -513,6 +513,9 @@ private fun getAddressFromContext(context: Context, lat: Double, lon: Double): S
 }
 
 private fun copyUriToFile(context: Context, uri: Uri): File {
+    if (uri.scheme == "file") {
+        return File(uri.path ?: uri.toString().removePrefix("file://"))
+    }
     val inputStream = context.contentResolver.openInputStream(uri)!!
     val file = File(context.cacheDir, "upload_${System.currentTimeMillis()}.jpg")
     file.outputStream().use { output -> inputStream.copyTo(output) }
