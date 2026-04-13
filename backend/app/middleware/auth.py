@@ -18,7 +18,11 @@ from app.models import User
 logger = logging.getLogger("civicfix.auth")
 
 security = HTTPBearer(auto_error=False)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt"], 
+    deprecated="auto",
+    bcrypt__truncate_error=True
+)
 
 
 def hash_password(password: str) -> str:
