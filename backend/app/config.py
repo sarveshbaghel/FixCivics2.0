@@ -66,3 +66,5 @@ if settings.DATABASE_URL:
         settings.DATABASE_URL = settings.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
     elif settings.DATABASE_URL.startswith("postgresql://"):
         settings.DATABASE_URL = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+        
+    settings.DATABASE_URL = settings.DATABASE_URL.replace("sslmode=require", "ssl=require")
