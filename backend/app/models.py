@@ -1,13 +1,10 @@
 """
-CivicFix Database Models
+CivicFix Database Models (MongoDB)
+Helper functions for creating documents with proper defaults.
+MongoDB uses dictionaries rather than ORM classes.
 """
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import (
-    Column, String, Text, Float, Boolean, DateTime, ForeignKey, Enum as SAEnum
-)
-from sqlalchemy.orm import relationship
-from app.database import Base
 
 
 def utcnow():
@@ -18,62 +15,62 @@ def generate_uuid():
     return str(uuid.uuid4())
 
 
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    display_name = Column(String(100), nullable=True)
-    email = Column(String(255), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=True)
-    provider = Column(String(50), default="local")  # local, firebase
-    role = Column(String(20), default="user")  # user, admin
-    created_at = Column(DateTime(timezone=True), default=utcnow)
-
-    reports = relationship("Report", back_populates="user")
-
-
-class Report(Base):
-    __tablename__ = "reports"
-
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
-    issue_type = Column(String(50), nullable=False)
-    description = Column(Text, nullable=False)
-    latitude = Column(Float, nullable=False)
-    longitude = Column(Float, nullable=False)
-    address = Column(Text, nullable=True)
-    incident_date = Column(DateTime(timezone=True), nullable=True)
-    image_url = Column(Text, nullable=True)
-    thumbnail_url = Column(Text, nullable=True)
-    status = Column(String(20), default="pending")  # pending, approved, resolved, rejected
-    complaint_text = Column(Text, nullable=True)
-    admin_note = Column(Text, nullable=True)
-    posted_to_x = Column(Boolean, default=False)
-    x_post_id = Column(String(100), nullable=True)
-    device_id = Column(String(100), nullable=True)
-    resolved_image_url = Column(Text, nullable=True)
-    resolved_at = Column(DateTime(timezone=True), nullable=True)
-    resolved_by = Column(String(255), nullable=True)
-    resolved_note = Column(Text, nullable=True)
-    declined_at = Column(DateTime(timezone=True), nullable=True)
-    declined_by = Column(String(255), nullable=True)
-    decline_reason = Column(Text, nullable=True)
-    is_fake = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), default=utcnow)
-    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
-
-    user = relationship("User", back_populates="reports")
-    audit_logs = relationship("AuditLog", back_populates="report")
+def new_user(email: str, password_hash: str = None, display_name: str = None,
+             provider: str = "local", role: str = "user", user_id: str = None) -> dict:
+    """Create a new user document."""
+    return {
+        "_id": user_id or generate_uuid(),
+        "email": email,
+        "password_hash": password_hash,
+        "display_name": display_name,
+        "provider": provider,
+        "role": role,
+        "created_at": utcnow(),
+    }
 
 
-class AuditLog(Base):
-    __tablename__ = "audit_logs"
+def new_report(user_id: str = None, issue_type: str = "", description: str = "",
+               latitude: float = 0.0, longitude: float = 0.0, address: str = None,
+               image_url: str = None, thumbnail_url: str = None,
+               complaint_text: str = None, device_id: str = None) -> dict:
+    """Create a new report document."""
+    now = utcnow()
+    return {
+        "_id": generate_uuid(),
+        "user_id": user_id,
+        "issue_type": issue_type,
+        "description": description,
+        "latitude": latitude,
+        "longitude": longitude,
+        "address": address,
+        "image_url": image_url,
+        "thumbnail_url": thumbnail_url,
+        "status": "pending",
+        "complaint_text": complaint_text,
+        "admin_note": None,
+        "posted_to_x": False,
+        "x_post_id": None,
+        "device_id": device_id,
+        "created_at": now,
+        "updated_at": now,
+    }
 
-    id = Column(String(36), primary_key=True, default=generate_uuid)
-    report_id = Column(String(36), ForeignKey("reports.id"), nullable=True)
-    action = Column(String(100), nullable=False)
-    actor = Column(String(255), nullable=True)
-    note = Column(Text, nullable=True)
-    timestamp = Column(DateTime(timezone=True), default=utcnow)
 
-    report = relationship("Report", back_populates="audit_logs")
+def new_audit_log(action: str, actor: str = "system",
+                  report_id: str = None, note: str = None) -> dict:
+    """Create a new audit log document."""
+    return {
+        "_id": generate_uuid(),
+        "action": action,
+        "actor": actor,
+        "report_id": report_id,
+        "note": note,
+        "timestamp": utcnow(),
+    }
+
+
+def doc_to_response(doc: dict) -> dict:
+    """Convert a MongoDB document to an API response (rename _id to id)."""
+    if doc and "_id" in doc:
+        doc["id"] = doc.pop("_id")
+    return doc

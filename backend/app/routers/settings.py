@@ -1,13 +1,12 @@
 """
-CivicFix - Settings Router
-Admin-only endpoints to manage application settings (auto-post toggle, etc.)
+CivicFix - Settings Router (MongoDB)
+Admin-only endpoints to manage application settings
 """
 import logging
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.config import settings
-from app.models import User
-from app.middleware.auth import require_user
+from app.middleware.auth import require_admin
 
 logger = logging.getLogger("civicfix.settings")
 router = APIRouter(prefix="/api/v1", tags=["Settings"])
@@ -29,7 +28,7 @@ class SettingsUpdate(BaseModel):
 
 
 def is_auto_post_enabled() -> bool:
-    """Check if auto-post to X is currently enabled (runtime override > config)."""
+    """Check if auto-post to X is currently enabled."""
     override = _runtime_settings["x_auto_post_enabled"]
     if override is not None:
         return override
@@ -37,7 +36,7 @@ def is_auto_post_enabled() -> bool:
 
 
 @router.get("/settings", response_model=SettingsResponse)
-async def get_settings(user: User = Depends(require_user)):
+async def get_settings(admin: dict = Depends(require_admin)):
     """Get current application settings. Admin-only."""
     has_oauth_keys = all([
         settings.X_API_KEY,
@@ -56,12 +55,12 @@ async def get_settings(user: User = Depends(require_user)):
 @router.put("/settings", response_model=SettingsResponse)
 async def update_settings(
     data: SettingsUpdate,
-    user: User = Depends(require_user),
+    admin: dict = Depends(require_admin),
 ):
     """Update application settings. Admin-only."""
     _runtime_settings["x_auto_post_enabled"] = data.x_auto_post_enabled
     logger.info(
-        f"Settings updated by {user.email}: "
+        f"Settings updated by {admin['email']}: "
         f"x_auto_post_enabled={data.x_auto_post_enabled}"
     )
 

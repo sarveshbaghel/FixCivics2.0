@@ -7,8 +7,9 @@ from typing import Optional
 
 
 class Settings(BaseSettings):
-    # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./civicfix.db"
+    # MongoDB
+    MONGODB_URL: str = "mongodb://localhost:27017/civicfix"
+    MONGODB_DB_NAME: str = "civicfix"
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"

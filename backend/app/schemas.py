@@ -59,6 +59,10 @@ class TokenResponse(BaseModel):
     role: str = "user"
 
 
+class FirebaseLoginRequest(BaseModel):
+    firebase_token: str
+
+
 class UserResponse(BaseModel):
     id: str
     email: str

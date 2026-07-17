@@ -15,5 +15,5 @@ async def health_check():
         status="ok",
         version="1.0.0",
         mock_mode=settings.MOCK_MODE,
-        database="connected",
+        database="mongodb-atlas",
     )

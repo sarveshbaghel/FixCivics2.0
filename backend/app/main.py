@@ -1,5 +1,5 @@
 """
-CivicFix Backend - FastAPI Application Entry Point
+CivicFix Backend - FastAPI Application Entry Point (MongoDB)
 """
 import logging
 from contextlib import asynccontextmanager
@@ -8,13 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from app.config import settings
-from app.database import init_db
+from app.database import init_db, close_db, get_db
 from app.middleware.rate_limit import init_redis
+from app.models import new_user
+from app.middleware.auth import hash_password
 from app.routers import auth, reports, health
 from app.routers import settings as settings_router
-from app.models import User
-from app.middleware.auth import hash_password
-from sqlalchemy import select
 
 # Configure logging
 logging.basicConfig(
@@ -30,22 +29,17 @@ async def lifespan(app: FastAPI):
     logger.info("=" * 50)
     logger.info("CivicFix Backend Starting...")
     logger.info(f"  MOCK_MODE: {settings.MOCK_MODE}")
-    logger.info(f"  Database: {settings.DATABASE_URL[:30]}...")
+    logger.info(f"  Database: MongoDB Atlas")
     logger.info("=" * 50)
 
-    # Initialize database tables
-    try:
-        await init_db()
-        # Seed admin account
-        await seed_admin()
-    except Exception as e:
-        logger.error(f"Failed to initialize database: {e}")
+    # Initialize MongoDB connection
+    await init_db()
+
+    # Seed admin account
+    await seed_admin()
 
     # Initialize Redis for rate limiting
-    try:
-        await init_redis()
-    except Exception as e:
-        logger.error(f"Failed to initialize Redis: {e}")
+    await init_redis()
 
     # Create mock uploads directory
     if settings.MOCK_MODE:
@@ -53,29 +47,28 @@ async def lifespan(app: FastAPI):
 
     logger.info("CivicFix Backend Ready!")
     yield
+
+    # Shutdown
+    await close_db()
     logger.info("CivicFix Backend Shutting Down...")
 
 
 async def seed_admin():
     """Create the default admin user if it doesn't exist."""
-    from app.database import async_session
-
-    async with async_session() as db:
-        result = await db.execute(select(User).where(User.email == settings.ADMIN_EMAIL))
-        admin = result.scalar_one_or_none()
-        if not admin:
-            admin = User(
-                email=settings.ADMIN_EMAIL,
-                password_hash=hash_password(settings.ADMIN_PASSWORD),
-                display_name="Admin",
-                provider="local",
-                role="admin",
-            )
-            db.add(admin)
-            await db.commit()
-            logger.info(f"Admin account seeded: {settings.ADMIN_EMAIL}")
-        else:
-            logger.info(f"Admin account already exists: {settings.ADMIN_EMAIL}")
+    db = get_db()
+    admin = await db.users.find_one({"email": settings.ADMIN_EMAIL})
+    if not admin:
+        admin_doc = new_user(
+            email=settings.ADMIN_EMAIL,
+            password_hash=hash_password(settings.ADMIN_PASSWORD),
+            display_name="Admin",
+            provider="local",
+            role="admin",
+        )
+        await db.users.insert_one(admin_doc)
+        logger.info(f"Admin account seeded: {settings.ADMIN_EMAIL}")
+    else:
+        logger.info(f"Admin account already exists: {settings.ADMIN_EMAIL}")
 
 
 # Create FastAPI app
@@ -116,6 +109,7 @@ async def root():
     return {
         "name": "CivicFix API",
         "version": "1.0.0",
+        "database": "MongoDB Atlas",
         "docs": "/docs",
         "health": "/api/v1/health",
     }
