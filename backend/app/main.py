@@ -87,11 +87,15 @@ async def seed_reports():
     from datetime import datetime, timezone, timedelta
 
     async with async_session() as db:
-        # Check if reports already exist
-        result = await db.execute(select(Report))
-        if result.scalar_one_or_none():
-            logger.info("Reports already seeded, skipping...")
-            return
+        try:
+            # Check if reports already exist
+            result = await db.execute(select(Report).limit(1))
+            existing = result.scalar_one_or_none()
+            if existing:
+                logger.info("Reports already seeded, skipping...")
+                return
+        except Exception as e:
+            logger.error(f"Error checking existing reports: {e}")
 
         sample_reports = [
             {
@@ -167,8 +171,12 @@ async def seed_reports():
             )
             db.add(report)
 
-        await db.commit()
-        logger.info(f"Sample reports seeded: {len(sample_reports)} reports created")
+        try:
+            await db.commit()
+            logger.info(f"Sample reports seeded: {len(sample_reports)} reports created")
+        except Exception as e:
+            logger.error(f"Error seeding reports: {e}")
+            await db.rollback()
 
 
 # Create FastAPI app
