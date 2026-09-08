@@ -150,7 +150,7 @@ fun AboutScreen(onBack: () -> Unit, onDevelopersClick: () -> Unit = {}) {
                 Spacer(Modifier.height(16.dp))
 
                 // Developers Section — link to dedicated screen
-                /*Card(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onDevelopersClick() },
@@ -198,7 +198,7 @@ fun AboutScreen(onBack: () -> Unit, onDevelopersClick: () -> Unit = {}) {
                             tint = Color(0xFFCBD5E1)
                         )
                     }
-                }*/
+                }
 
                 Spacer(Modifier.height(16.dp))
 

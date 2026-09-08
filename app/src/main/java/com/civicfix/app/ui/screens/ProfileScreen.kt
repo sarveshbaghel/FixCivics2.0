@@ -204,12 +204,12 @@ fun ProfileScreen(
                     subtitle = "App info & details",
                     onClick = onAboutClick
                 )
-                /*ProfileMenuItem(
+                ProfileMenuItem(
                     icon = Icons.Outlined.Group,
                     text = "Developers",
                     subtitle = "Meet the team behind Trace",
                     onClick = onDevelopersClick
-                )*/
+                )
 
                 Spacer(Modifier.height(16.dp))
                 Text(

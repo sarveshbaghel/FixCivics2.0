@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Trace</string>
+    <string name="app_name">CivicFix</string>
     <string name="pref_twitter_posting_title">Enable Twitter Posting</string>
     <string name="pref_twitter_posting_summary">Share reports directly to Twitter/X after submitting</string>
     <string name="twitter_share_fallback">Could not open Twitter app, trying browser…</string>

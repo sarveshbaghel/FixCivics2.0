@@ -99,3 +99,5 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+jdk17/
+*.zip
