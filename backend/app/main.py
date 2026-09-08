@@ -89,7 +89,6 @@ async def seed_reports():
     async with async_session() as db:
         try:
             # Check report count
-            from sqlalchemy import func
             result = await db.execute(select(func.count(Report.id)))
             count = result.scalar() or 0
             
@@ -99,8 +98,7 @@ async def seed_reports():
             
             logger.info("No reports found, starting seed...")
 
-
-        sample_reports = [
+            sample_reports = [
             {
                 "issue_type": "🕳️ Pothole",
                 "description": "Large pothole on Main Street affecting traffic and causing vehicle damage",
@@ -157,24 +155,23 @@ async def seed_reports():
                 "status": "pending",
                 "complaint_text": "Road conditions deteriorating rapidly"
             }
-        ]
+            ]
 
-        now = datetime.now(timezone.utc)
-        for i, report_data in enumerate(sample_reports):
-            report = Report(
-                issue_type=report_data["issue_type"],
-                description=report_data["description"],
-                latitude=report_data["latitude"],
-                longitude=report_data["longitude"],
-                address=report_data["address"],
-                status=report_data["status"],
-                complaint_text=report_data["complaint_text"],
-                admin_note=report_data.get("admin_note"),
-                incident_date=now - timedelta(days=i),
-            )
-            db.add(report)
+            now = datetime.now(timezone.utc)
+            for i, report_data in enumerate(sample_reports):
+                report = Report(
+                    issue_type=report_data["issue_type"],
+                    description=report_data["description"],
+                    latitude=report_data["latitude"],
+                    longitude=report_data["longitude"],
+                    address=report_data["address"],
+                    status=report_data["status"],
+                    complaint_text=report_data["complaint_text"],
+                    admin_note=report_data.get("admin_note"),
+                    incident_date=now - timedelta(days=i),
+                )
+                db.add(report)
 
-        try:
             await db.commit()
             logger.info(f"Sample reports seeded: {len(sample_reports)} reports created")
         except Exception as e:
