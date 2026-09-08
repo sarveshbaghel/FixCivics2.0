@@ -14,7 +14,7 @@ from app.routers import auth, reports, health
 from app.routers import settings as settings_router
 from app.models import User
 from app.middleware.auth import hash_password
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 # Configure logging
 logging.basicConfig(
@@ -88,14 +88,17 @@ async def seed_reports():
 
     async with async_session() as db:
         try:
-            # Check if reports already exist
-            result = await db.execute(select(Report).limit(1))
-            existing = result.scalars().first()
-            if existing:
-                logger.info("Reports already seeded, skipping...")
+            # Check report count
+            from sqlalchemy import func
+            result = await db.execute(select(func.count(Report.id)))
+            count = result.scalar() or 0
+            
+            if count > 0:
+                logger.info(f"Reports already exist ({count} found), skipping seed...")
                 return
-        except Exception as e:
-            logger.error(f"Error checking existing reports: {e}")
+            
+            logger.info("No reports found, starting seed...")
+
 
         sample_reports = [
             {
