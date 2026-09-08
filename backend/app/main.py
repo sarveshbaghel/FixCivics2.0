@@ -38,6 +38,8 @@ async def lifespan(app: FastAPI):
         await init_db()
         # Seed admin account
         await seed_admin()
+        # Seed sample reports
+        await seed_reports()
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
 
@@ -76,6 +78,97 @@ async def seed_admin():
             logger.info(f"Admin account seeded: {settings.ADMIN_EMAIL}")
         else:
             logger.info(f"Admin account already exists: {settings.ADMIN_EMAIL}")
+
+
+async def seed_reports():
+    """Create sample civic issue reports if none exist."""
+    from app.database import async_session
+    from app.models import Report
+    from datetime import datetime, timezone, timedelta
+
+    async with async_session() as db:
+        # Check if reports already exist
+        result = await db.execute(select(Report))
+        if result.scalar_one_or_none():
+            logger.info("Reports already seeded, skipping...")
+            return
+
+        sample_reports = [
+            {
+                "issue_type": "🕳️ Pothole",
+                "description": "Large pothole on Main Street affecting traffic and causing vehicle damage",
+                "latitude": 40.7128,
+                "longitude": -74.0060,
+                "address": "Main Street & 5th Ave, New York, NY",
+                "status": "pending",
+                "complaint_text": "Pothole has been there for weeks. Very dangerous."
+            },
+            {
+                "issue_type": "🗑️ Garbage",
+                "description": "Overflowing trash bins at park entrance",
+                "latitude": 40.7580,
+                "longitude": -73.9855,
+                "address": "Central Park, New York, NY",
+                "status": "approved",
+                "complaint_text": "Garbage everywhere, needs immediate cleanup"
+            },
+            {
+                "issue_type": "💡 Broken streetlight",
+                "description": "Street light is non-functional making the area unsafe at night",
+                "latitude": 40.7489,
+                "longitude": -73.9680,
+                "address": "Times Square, New York, NY",
+                "status": "pending",
+                "complaint_text": "Dark area at night, potential safety hazard"
+            },
+            {
+                "issue_type": "💧 Water leakage",
+                "description": "Water pipe leak causing water waste and wet sidewalk",
+                "latitude": 40.7614,
+                "longitude": -73.9776,
+                "address": "42nd Street, New York, NY",
+                "status": "resolved",
+                "complaint_text": "Fixed by city maintenance",
+                "admin_note": "Repair completed on 2026-08-15"
+            },
+            {
+                "issue_type": "📋 Other",
+                "description": "Damaged sidewalk creating tripping hazard",
+                "latitude": 40.7505,
+                "longitude": -73.9934,
+                "address": "Broadway & 42nd St, New York, NY",
+                "status": "rejected",
+                "complaint_text": "Cracked pavement",
+                "admin_note": "Already scheduled for repair by public works"
+            },
+            {
+                "issue_type": "🕳️ Pothole",
+                "description": "Multiple potholes on Park Avenue",
+                "latitude": 40.7750,
+                "longitude": -73.9717,
+                "address": "Park Avenue, New York, NY",
+                "status": "pending",
+                "complaint_text": "Road conditions deteriorating rapidly"
+            }
+        ]
+
+        now = datetime.now(timezone.utc)
+        for i, report_data in enumerate(sample_reports):
+            report = Report(
+                issue_type=report_data["issue_type"],
+                description=report_data["description"],
+                latitude=report_data["latitude"],
+                longitude=report_data["longitude"],
+                address=report_data["address"],
+                status=report_data["status"],
+                complaint_text=report_data["complaint_text"],
+                admin_note=report_data.get("admin_note"),
+                incident_date=now - timedelta(days=i),
+            )
+            db.add(report)
+
+        await db.commit()
+        logger.info(f"Sample reports seeded: {len(sample_reports)} reports created")
 
 
 # Create FastAPI app
