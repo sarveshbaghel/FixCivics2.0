@@ -90,7 +90,7 @@ async def seed_reports():
         try:
             # Check if reports already exist
             result = await db.execute(select(Report).limit(1))
-            existing = result.scalar_one_or_none()
+            existing = result.scalars().first()
             if existing:
                 logger.info("Reports already seeded, skipping...")
                 return
